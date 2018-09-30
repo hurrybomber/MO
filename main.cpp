@@ -1,8 +1,8 @@
 #include <iostream>
-#include <string>
 #include <limits>
+#include <iomanip>
+
 struct Table {
-	
 	unsigned int row = 0;
 	unsigned int col = 0;
 	double **T;
@@ -39,25 +39,30 @@ struct Table {
 //    table.T[solv_row][solv_col] = 1/ table.T[solv_row][solv_col];
 //}
 
-//Функции change совершают жордановы преобразования
+//Функции change совершают жордановы преобразования:
+//     //1.  srk* = 1 / srk;
+//     //2.  srj* = srj / srk, j = 0,n, j != k;
+//     //3.  sjk* = - sik / srk, i = 1,m+1, i != r;
+//     //4.  sij* = sij - (sik * srj) / srk, i = 1,m+1, i != r, j = 0,n, j != k;
+
 double** change(Table table, int solving_col, int solving_row) {
 	double resolving_element = table.T[solving_row][solving_col];
 	table.T[solving_row][solving_col] = 1 / resolving_element;
-	for ( unsigned int i = 0; i < table.row; i++) {
-		for (unsigned int j = 0; j < table.col; j++) {
+	for (int i = 0; i < table.row; i++) {
+		for (int j = 0; j < table.col; j++) {
 			if (i == solving_row || j == solving_col)
 				continue;
 			table.T[i][j] = table.T[i][j] - table.T[i][solving_col] * table.T[solving_row][j] / resolving_element;
 		}
 	}
 
-	for (unsigned int j = 0; j < table.col; j++) {
+	for (int j = 0; j < table.col; j++) {
 		if (j == solving_col)
 			continue;
 		table.T[solving_row][j] = table.T[solving_row][j] / resolving_element;
 	}
 
-	for (unsigned int i = 0; i < table.row; i++) {
+	for (int i = 0; i < table.row; i++) {
 		if (i == solving_row)
 			continue;
 		table.T[i][solving_col] = -table.T[i][solving_col] / resolving_element;
@@ -66,9 +71,10 @@ double** change(Table table, int solving_col, int solving_row) {
 }
 // Функция print печатает таблицу
 void print(Table table) {
-	for (unsigned int i = 0; i< table.row; i++) {
-		for (unsigned int j = 0; j< table.col; j++)
-			std::cout << table.T[i][j] << "   ";
+	for (int i = 0; i< table.row; i++) {
+		for (int j = 0; j< table.col; j++) {
+			std::cout << std::setw(20) << table.T[i][j] << " ";
+		}
 		std::cout << std::endl;
 	}
 	std::cout << std::endl;
@@ -99,7 +105,7 @@ auto search_solving_row(Table table, int &solving_row, int solving_col) -> int {
 }
 
 int search_solving_col_for_optimal(Table table, int & solving_col) {
-	for (unsigned int j = 1; j<table.col; j++)
+	for (int j = 1; j<table.col; j++)
 		if (table.T[table.row - 1][j] > 0) {
 			solving_col = j;
 			return solving_col;
@@ -111,7 +117,7 @@ int search_solving_col_for_optimal(Table table, int & solving_col) {
 // Функция search_solving_col осуществляет поиск разрешающего столбца
 int search_solving_col(Table table, int row_with_negative_in_si0) {
 	if (row_with_negative_in_si0 == -1) return -1;
-	for (unsigned int j = 1; j < table.col; j++) {
+	for (int j = 1; j < table.col; j++) {
 		if (table.T[row_with_negative_in_si0][j] < 0)
 			return j;
 	}
@@ -122,7 +128,7 @@ int search_solving_col(Table table, int row_with_negative_in_si0) {
 // Если не найдет вернет true
 // Если найдет вернет false
 bool is_there_negative_element_in_si0_(Table table) {
-	for (unsigned int i = 0; i < table.row - 1; i++) {
+	for (int i = 0; i < table.row - 1; i++) {
 		if (table.T[i][0] < 0)
 			return false;
 	}
@@ -131,19 +137,19 @@ bool is_there_negative_element_in_si0_(Table table) {
 
 // inline-функции использованы для повторяющихся выводов
 inline void bad_input() {
-	std::cout << "Invalid value entered!" << std::endl
-		<< "Continue with the last correct value you entered: ";
+	std::cout << "Введено неверное значение!" << std::endl
+		<< "Продолжите ввод с последенего верно введенного значения: ";
 }
 inline void nice_output(int counter, int solving_col, int solving_row) {
-	std::cout << "Step #" << counter << std::endl
-		<< "Number of the resolution line: " << solving_row << std::endl
-		<< "Resolution column number: " << solving_col << std::endl;
+	std::cout << "Шаг #" << counter << std::endl
+		<< "Номер разрешающей строки: " << solving_row << std::endl
+		<< "Номер разрешающего столбца: " << solving_col << std::endl;
 }
 inline void no_solutions() {
-	std::cout << "No solutions." << std::endl;
+	std::cout << "Решений нет." << std::endl;
 }
 int main() {
-
+	setlocale(LC_ALL, "rus");
 	Table table;
 	double ** & T = table.T;
 	unsigned int & row = table.row;
@@ -156,11 +162,12 @@ int main() {
 	col = Number_of_variables + 1;
 
 	T = new double *[row];
-	for (unsigned int i = 0; i < row; i++)
+	for (int i = 0; i < row; i++)
 		T[i] = new double[col] {0};
-
-	std::cout << "Enter the coefficients F (matrix C): ";
+	// С - вектор коэффициентов ЦФ F
+	std::cout << "Введите коэффициенты (вектор с): ";
 	T[row - 1][0] = 0;
+	
 	for (unsigned int j = 1; j < col; j++) {
 		std::cin >> T[row - 1][j];
 		while (!std::cin) {
@@ -170,8 +177,8 @@ int main() {
 			std::cin >> T[row - 1][j];
 		}
 	}
-
-	std::cout << "Enter matrix A: ";
+	//А - мастрица системы ограничений
+	std::cout << "Введите матрицу A: ";
 	for (unsigned int i = 0; i < row - 1; i++) {
 		for (unsigned int j = 1; j < col; j++) {
 			std::cin >> T[i][j];
@@ -183,8 +190,8 @@ int main() {
 			}
 		}
 	}
-
-	std::cout << "enter matrix B(transp.): ";
+	//В - вектор правой части системы ограничений
+	std::cout << "Введите вектор В(трансп.): ";
 	for (unsigned int i = 0; i < row - 1; i++) {
 		std::cin >> T[i][0];
 		while (!std::cin) {
@@ -194,7 +201,7 @@ int main() {
 			std::cin >> T[i][0];
 		}
 	}
-	std::cout << "simplex table:" << std::endl;
+	std::cout << "Cимплекс-таблица:" << std::endl;
 	print(table);
 
 	unsigned int counter = 0;
@@ -213,12 +220,12 @@ int main() {
 
 		if (flag) {
 			if (f) {
-				std::cout << "The reference solution is found: " << std::endl;
+				std::cout << "Опорное решение найдено: " << std::endl;
 				f = false;
 			}
 			solving_col = search_solving_col_for_optimal(table, solving_col);
 			if (solving_col == 0) {
-				std::cout << "Found solution is optimal." << std::endl
+				std::cout << "Найденное решение является оптимальным." << std::endl
 					<< "F= " << -T[row - 1][0] << std::endl;
 				Flag_optimal_solution_found = true;
 				break;
@@ -230,6 +237,7 @@ int main() {
 			if (solving_col == -1) {
 				no_solutions();
 				break;
+				
 			}
 		}
 
@@ -246,9 +254,11 @@ int main() {
 		T = change(table, solving_col, solving_row);
 		nice_output(counter, solving_col, solving_row);
 		print(table);
+		
 	}
 
-	for (unsigned int i = 0; i < row; i++)
+	for (int i = 0; i < row; i++)
 		delete[] T[i];
 	delete[] T;
+	system("pause");
 }
