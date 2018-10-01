@@ -7,37 +7,6 @@ struct Table {
 	unsigned int col = 0;
 	double **T;
 };
-//     //1.  srk* = 1 / srk;
-//     //2.  srj* = srj / srk, j = 0,n, j != k;
-//     //3.  sjk* = - sik / srk, i = 1,m+1, i != r;
-//     //4.  sij* = sij - (sik * srj) / srk, i = 1,m+1, i != r, j = 0,n, j != k;
-
-////4.  sij* = sij - (sik * srj) / srk, i = 1,m+1, i != r, j = 0,n, j != k;
-//auto change_sij(Table table, int solv_row, int solv_col) ->void{
-//    for (unsigned int index = 0; index < table.col; index++)
-//        for(unsigned int index_j = 0; index_j <table.row; index_j++)
-//            if((index != solv_col) and (index_j != solv_row))
-//                table.T[index][index_j] -= (table.T[index][solv_col]* table.T[solv_row][index_j]) / table.T[solv_row][solv_col];
-//                }
-//
-////3.  sjk* = - sik / srk, i = 1,m+1, i != r;
-//auto change_sjk(Table table, int solv_row, int solv_col) ->void{
-//    for (unsigned int index = 0; index < table.row; index++)
-//        if (index != solv_row)
-//            table.T[index][solv_col] /= table.T[solv_row][solv_col]*-1;
-//            }
-//
-////2.  srj* = srj / srk, j = 0,n, j != k;
-//auto change_srj(Table table, int solv_row, int solv_col) ->void{
-//    for (unsigned int index = 0; index < table.col; index++)
-//        if (index != solv_col)
-//            table.T[solv_row][index] /= table.T[solv_row][solv_col];
-//            }
-//
-////1.  srk* = 1 / srk;
-//auto change_srk(Table table, int solv_row, int solv_col) ->void{
-//    table.T[solv_row][solv_col] = 1/ table.T[solv_row][solv_col];
-//}
 
 //Функции change совершают жордановы преобразования:
 //     //1.  srk* = 1 / srk;
@@ -164,7 +133,7 @@ int main() {
 	T = new double *[row];
 	for (int i = 0; i < row; i++)
 		T[i] = new double[col] {0};
-	// С - вектор коэффициентов ЦФ F
+	
 	std::cout << "Введите коэффициенты (вектор с): ";
 	T[row - 1][0] = 0;
 	
@@ -177,7 +146,7 @@ int main() {
 			std::cin >> T[row - 1][j];
 		}
 	}
-	//А - мастрица системы ограничений
+	
 	std::cout << "Введите матрицу A: ";
 	for (unsigned int i = 0; i < row - 1; i++) {
 		for (unsigned int j = 1; j < col; j++) {
@@ -190,7 +159,7 @@ int main() {
 			}
 		}
 	}
-	//В - вектор правой части системы ограничений
+	
 	std::cout << "Введите вектор В(трансп.): ";
 	for (unsigned int i = 0; i < row - 1; i++) {
 		std::cin >> T[i][0];
@@ -247,10 +216,6 @@ int main() {
 			break;
 		}
 
-		//        change_sij(table, solving_row, solving_col);
-		//        change_sjk(table, solving_row, solving_col);
-		//        change_srj(table, solving_row, solving_col);
-		//        change_srk(table, solving_row, solving_col);
 		T = change(table, solving_col, solving_row);
 		nice_output(counter, solving_col, solving_row);
 		print(table);
